@@ -12,13 +12,14 @@ using namespace std;
 
 
 const int minBlockSize = 128;
-const int req = 7;
+const int req = 1;
 
-pair<int*, int> MergeAndCountSplitInvPair(int* Lb, int Lsize, int* Rb, int Rsize);
-pair <int*, int> SortAndCountInvPair(int* begin, int* end);
 
 int* MergeAndCountSplitInv(int* Lb, int Lsize, int* Rb, int Rsize);
 int* SortAndCountInv(int* begin, int* end);
+
+int* MergeAndCountSplitInvMemcpy(int* Lb, int Lsize, int* Rb, int Rsize);
+int* SortAndCountInvMemcpy(int* begin, int* end);
 
 int* MergeAndCountSplitInvFor(int* Lb, int Lsize, int* Rb, int Rsize);
 int* SortAndCountInvFor(int* begin, int* end);
@@ -84,94 +85,11 @@ int main(int argc, char* argv[]) {
 	int* A = new int[n];
 	for (int i = 0; i < n; i++)
 	{
-		A[i] = dist(gen);
+		A[i] = n-i;
 	}
 	test(A, n);
 	delete[] A;
 	system("pause");
-}
-
-
-pair<int*, int> MergeAndCountSplitInvPair(int* Lb, int Lsize, int* Rb, int Rsize)
-{
-	int* L = new int[Lsize + 1]; // Local copy of Left Array
-	int* R = new int[Rsize + 1]; // Local copy of Right Array
-
-	memcpy(L, Lb, Lsize * sizeof(int));
-	memcpy(R, Rb, Rsize * sizeof(int));
-
-	L[Lsize] = INT_MAX;
-	R[Rsize] = INT_MAX;
-
-	int counter = 0; // counter of inversions
-	int i = 0, j = 0;
-
-	int* A = new int[Lsize + Rsize]; // Merged Array
-
-	for (int k = 0; k < Lsize + Rsize; k++)
-	{
-		if (L[i] <= R[j])
-		{
-			A[k] = L[i];
-			i++;
-		}
-		else
-		{
-			A[k] = R[j];
-			j++;
-			counter += (Lsize - i);
-		}
-	}
-
-	delete[] L;
-	delete[] R;
-
-	return make_pair(A, counter);
-}
-
-// Sorting and find counter of Inversions
-pair <int*, int> SortAndCountInvPair(int* begin, int* end)
-{
-	int counter = 0; // counter of inversions
-	int size = end - begin; // size of array
-
-	if (size == 1)
-	{
-		int* A = new int[1];
-		memcpy(A, begin, sizeof(int));
-
-		return make_pair(A, 0);
-	}
-
-	else
-	{
-		int size1 = (size / 2) + (size % 2); // size of Left Array
-		int size2 = (size / 2); // size of Right Array
-
-		int* Lb = new int[size1]; // Left Array
-		int* Rb = new int[size2]; // Right Array
-
-		memcpy(Lb, begin, size1 * sizeof(int));
-		memcpy(Rb, begin + (size / 2) + (size % 2), size2 * sizeof(int));
-
-		pair <int*, int> L; // Sorted Left Array and counter of inversions
-		pair <int*, int> R; // Sorted Right Array and counter of inversions
-		pair <int*, int> A; // Sorted Array and counter of inversions
-
-		L = SortAndCountInvPair(Lb, Lb + size1); // Sorting of Left Array
-		R = SortAndCountInvPair(Rb, Rb + size2); // Sorting of Right Array
-
-		delete[] Lb;
-		delete[] Rb;
-
-		A = MergeAndCountSplitInvPair(L.first, size1, R.first, size2); // Merging of Left and Right Array
-		A.second += L.second + R.second;
-
-		delete[] L.first;
-		delete[] R.first;
-
-		return A;
-	}
 }
 
 
@@ -289,6 +207,75 @@ int* MergeAndCountSplitInv(int* Lb, int Lsize, int* Rb, int Rsize)
 // Sorting and find counter of Inversions
 int* SortAndCountInv(int* begin, int* end)
 {
+	int size = end - begin; // size of array
+
+	if (size == 1)
+	{
+		int* A = new int[1];
+		memcpy(A, begin, sizeof(int));
+
+		return A;
+	}
+
+	else
+	{
+		int size1 = (size / 2) + (size % 2); // size of Left Array
+		int size2 = (size / 2); // size of Right Array
+
+		int* L; // Sorted Left Array and counter of inversions
+		int* R; // Sorted Right Array and counter of inversions
+		int* A; // Sorted Array and counter of inversions
+
+		L = SortAndCountInv(begin, begin + size1); // Sorting of Left Array
+		R = SortAndCountInv(begin + (size / 2) + (size % 2), end); // Sorting of Right Array
+
+		A = MergeAndCountSplitInv(L, size1, R, size2); // Merging of Left and Right Array
+		delete[] L;
+		delete[] R;
+
+		return A;
+	}
+}
+
+
+int* MergeAndCountSplitInvMemcpy(int* Lb, int Lsize, int* Rb, int Rsize)
+{
+	int* L = new int[Lsize + 1]; // Local copy of Left Array
+	int* R = new int[Rsize + 1]; // Local copy of Right Array
+
+	memcpy(L, Lb, Lsize * sizeof(int));
+	memcpy(R, Rb, Rsize * sizeof(int));
+
+	L[Lsize] = INT_MAX;
+	R[Rsize] = INT_MAX;
+
+	int i = 0, j = 0;
+
+	int* A = new int[Lsize + Rsize]; // Merged Array
+
+	for (int k = 0; k < Lsize + Rsize; k++)
+	{
+		if (L[i] <= R[j])
+		{
+			A[k] = L[i];
+			i++;
+		}
+		else
+		{
+			A[k] = R[j];
+			j++;
+		}
+	}
+
+	delete[] L;
+	delete[] R;
+
+	return A;
+}
+
+// Sorting and find counter of Inversions
+int* SortAndCountInvMemcpy(int* begin, int* end)
+{
 	int counter = 0; // counter of inversions
 	int size = end - begin; // size of array
 
@@ -329,6 +316,7 @@ int* SortAndCountInv(int* begin, int* end)
 		return A;
 	}
 }
+
 
 int* MergeAndCountSplitInvFor(int* Lb, int Lsize, int* Rb, int Rsize)
 {
@@ -372,6 +360,7 @@ int* MergeAndCountSplitInvFor(int* Lb, int Lsize, int* Rb, int Rsize)
 
 	return A;
 }
+
 
 // Sorting and find counter of Inversions
 int* SortAndCountInvFor(int* begin, int* end)
@@ -431,24 +420,23 @@ void test(int* A, int n)
 	memcpy(B, A, n * sizeof(int));
 
 	int* C = new int[n];
-
 	pair<int*, int> D;
 
 	time_t begin = clock();
-	C = SortAndCountInv(B, B + n);
+	C = SortAndCountInvMemcpy(B, B + n);
 	time_t end = clock();
-
-	time_t begin3 = clock();
-	D = SortAndCountInvPair(B, B + n);
-	time_t end3 = clock();
 
 	time_t begin1 = clock();
 	C = SortAndCountInvFor(B, B + n);
 	time_t end1 = clock();
 
 	time_t begin2 = clock();
-	int count = mergeSortAndCount(B, B + n);
+	C = SortAndCountInv(B, B + n);
 	time_t end2 = clock();
+
+	time_t begin3 = clock();
+	int count = mergeSortAndCount(B, B + n);
+	time_t end3 = clock();
 
 	memcpy(B, A, n * sizeof(int));
 
@@ -457,9 +445,9 @@ void test(int* A, int n)
 	time_t end4 = clock();
 
 	cout << "My Merge Sort with memcpy: " << end - begin << " ms" << endl;
-	cout << "My Merge Sort with memcpy and pair: " << end3 - begin3 << " ms" << endl;
 	cout << "My Merge Sort with for: " << end1 - begin1 << " ms" << endl;
-	cout << "Sasha Merge Sort: " << end2 - begin2 << " ms" << endl;
+	cout << "My Updated Merge Sort: " << end2 - begin2 << " ms" << endl;
+	cout << "Sasha Merge Sort: " << end3 - begin3 << " ms" << endl;
 	cout << "Sasha Quick Sort: " << end4 - begin4 << " ms" << endl;
 	delete[] B;
 	delete[] C;
