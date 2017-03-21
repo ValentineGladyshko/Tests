@@ -12,7 +12,7 @@ using namespace std;
 
 
 const int minBlockSize = 128;
-const int req = 1;
+const int req = 7;
 
 
 int* MergeAndCountSplitInv(int* Lb, int Lsize, int* Rb, int Rsize);
