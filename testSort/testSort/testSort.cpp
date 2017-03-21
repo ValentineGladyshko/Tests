@@ -11,6 +11,9 @@
 using namespace std;
 
 
+const int minBlockSize = 128;
+const int req = 7;
+
 pair<int*, int> MergeAndCountSplitInvPair(int* Lb, int Lsize, int* Rb, int Rsize);
 pair <int*, int> SortAndCountInvPair(int* begin, int* end);
 
@@ -26,6 +29,50 @@ int mergeSortAndCount(int* b, int* e);
 
 void test(int*, int);
 
+template <class T>
+void insertionSort(T* b, T* e) {
+	const int size = e - b;
+
+	for (int i = 1; i < size; i++) {
+		int pos = i;
+		while (pos && b[pos] < b[pos - 1]) {
+			std::swap(b[pos], b[pos--]);
+		}
+	}
+}
+
+
+template <class T>
+void quickSort(T* b, T* e) {
+	if (e - b < minBlockSize) {
+		insertionSort<T>(b, e);
+		return;
+	}
+
+	const int size = e - b;
+	pair <T, int> arr[req];
+	for (int i = 0; i < req; i++) {
+		arr[i].second = rand() % size;
+		arr[i].first = b[arr[i].second];
+	}
+	insertionSort< pair <T, int> >(arr, arr + req);
+
+	swap(*(e - 1), b[arr[req >> 1].second]);
+	T* wall = b;
+	const T* pivot = e - 1;
+
+	for (T* i = b; i != pivot; i++) {
+		if (*i < *pivot) {
+			swap(*i, *wall);
+			++wall;
+		}
+	}
+
+	swap(*(e - 1), *wall);
+	quickSort(b, wall);
+	quickSort(wall + 1, e);
+}
+
 
 int main(int argc, char* argv[]) {
 	cout << "Enter Counter of Array: ";
@@ -40,8 +87,10 @@ int main(int argc, char* argv[]) {
 		A[i] = dist(gen);
 	}
 	test(A, n);
+	delete[] A;
 	system("pause");
 }
+
 
 pair<int*, int> MergeAndCountSplitInvPair(int* Lb, int Lsize, int* Rb, int Rsize)
 {
@@ -401,9 +450,18 @@ void test(int* A, int n)
 	int count = mergeSortAndCount(B, B + n);
 	time_t end2 = clock();
 
+	memcpy(B, A, n * sizeof(int));
+
+	time_t begin4 = clock();
+	quickSort<int>(B, B + n);
+	time_t end4 = clock();
+
 	cout << "My Merge Sort with memcpy: " << end - begin << " ms" << endl;
 	cout << "My Merge Sort with memcpy and pair: " << end3 - begin3 << " ms" << endl;
 	cout << "My Merge Sort with for: " << end1 - begin1 << " ms" << endl;
 	cout << "Sasha Merge Sort: " << end2 - begin2 << " ms" << endl;
+	cout << "Sasha Quick Sort: " << end4 - begin4 << " ms" << endl;
+	delete[] B;
+	delete[] C;
 }
 
