@@ -81,11 +81,11 @@ int main(int argc, char* argv[]) {
 	cin >> n;
 	random_device rd;
 	mt19937 gen(rd());
-	uniform_int_distribution<int> dist(INT_MIN + 1, INT_MAX - 1);
+	uniform_int_distribution<int> dist(0, 10000000);
 	int* A = new int[n];
 	for (int i = 0; i < n; i++)
 	{
-		A[i] = n-i;
+		A[i] = dist(gen);
 	}
 	test(A, n);
 	delete[] A;
@@ -437,13 +437,13 @@ void test(int* A, int n)
 	time_t begin3 = clock();
 	int count = mergeSortAndCount(B, B + n);
 	time_t end3 = clock();
-
+	
 	memcpy(B, A, n * sizeof(int));
 
 	time_t begin4 = clock();
 	quickSort<int>(B, B + n);
 	time_t end4 = clock();
-
+	
 	cout << "My Merge Sort with memcpy: " << end - begin << " ms" << endl;
 	cout << "My Merge Sort with for: " << end1 - begin1 << " ms" << endl;
 	cout << "My Updated Merge Sort: " << end2 - begin2 << " ms" << endl;
